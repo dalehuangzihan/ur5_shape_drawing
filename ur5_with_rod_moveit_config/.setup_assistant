@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: ur5_with_rod
+    relative_path: urdf/ur5_with_rod_joint_limited_robot.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/ur5_with_rod.srdf
+  CONFIG:
+    author_name: dale
+    author_email: dalehuangzihan@gmail.com
+    generated_timestamp: 1622377487

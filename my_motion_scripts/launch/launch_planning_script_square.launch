@@ -1,0 +1,6 @@
+<launch>
+    <node name="planning_script_square" pkg="my_motion_scripts"  
+    type="planning_script_square.py" output="screen">
+    </node>
+
+</launch>

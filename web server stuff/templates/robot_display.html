@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>robot display webpage</title>
+        <meta charset="utf-8" />
+        <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+        <script type="text/javascript" src="https://static.robotwebtools.org/threejs/current/three.min.js"></script>
+        <script src="{{url_for('static', filename='three.js/examples/js/loaders/ColladaLoader.js')}}"></script>
+        <script src="{{url_for('static', filename='three.js/examples/js/loaders/STLLoader.js')}}"></script>
+        <script type="text/javascript" src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+        <script src="{{url_for('static', filename='roslibjs/build/roslib.js')}}"></script>
+        <script src="{{url_for('static', filename='ros3djs/build/ros3d.js')}}"></script>
+        
+        <script>
+            function init() {
+                // connect to ROS:
+                var ros = new ROSLIB.Ros({
+                url : "ws://localhost:9090"
+                })
+                ros.on('connection', function() {
+                    console.log('Connected to websocket server.');
+                });
+                ros.on('error', function(error) {
+                    console.log('Error connecting to websocket server: ', error);
+                });
+                ros.on('close', function() {
+                    console.log('Connection to websocket server closed.');
+                });
+
+                // create the main viewer:
+                var viewer = new ROS3D.Viewer({
+                    divID : 'urdf',
+                    width : 800,
+                    height : 600,
+                    antialias : true,
+                    background : '#cccccc'
+                });
+                console.log("created viewer");
+
+                // Add a grid:
+                viewer.addObject(new ROS3D.Grid({
+                    color : '#666666'
+                }));
+                console.log("added grid")
+
+                // Setup a client to listen to TFs.
+                var tfClient = new ROSLIB.TFClient({
+                    ros : ros,
+                    angularThres : 0.01,
+                    transThres : 0.01,
+                    rate : 10.0,
+                    fixedFrame : 'world'
+                });
+                console.log("set up TF client");
+
+                tfClient.subscribe('/base_link', function(tf) {
+                    console.log(String(tf));
+                })
+
+                // set up urdf client:
+                var urdfClient = new ROS3D.UrdfClient({
+                    ros : ros,
+                    tfClient : tfClient,
+                    path : 'http://127.0.0.1:2000/static/',
+                    rootObject : viewer.scene,
+                    loader : ROS3D.COLLADA_LOADER_2,
+                    param : "robot_description"
+                });
+                console.log("set up urdf client");
+
+                // subscribe to joint states topic:
+                var joint_states_listener = new ROSLIB.Topic({
+                    ros : ros,
+                    name : '/joint_state_listener',
+                    messageType : 'sensor_msgs/JointState'
+                });
+                joint_states_listener.subscribe(function(msg) {
+                    // TODO:
+                })
+
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <h1>ur5 with rod URDF</h1>
+        <div id="urdf"></div>
+    </body>
+
+</html>

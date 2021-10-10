@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ros trajectory square test webpage</title>
+        <script type="text/javascript" src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    </head>
+
+    <body>
+        <h1>Hello from ROS</h1>
+        <p>Communicate to robots from my 1st webpage</p>
+        <p>Click <a href="/">here</a> to go home.</p>
+
+        
+        <script src="{{url_for('static', filename='rosbag/dist/web/index.js')}}"></script>
+            <!-- need to put node_modules into static folder and reference from there!-->
+        <script type="text/javascript">
+            var ros = new ROSLIB.Ros({
+                url : "ws://127.0.0.1:9090"
+            });
+
+            ros.on("connection", function() {
+                console.log("Connected to websocket server.");
+            });
+
+            ros.on("error", function(error) {
+                console.log("Error connecting to websocket server: ", error);
+            });
+
+            ros.on("close", function() {
+                console.log("Connection to websocket server closed.");
+            });
+
+            /*
+            // Reading bag file from server-side using AJAX:
+            function loadFile(filePath) {
+                var result = null;
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("GET", filePath, async=true);
+                xmlhttp.responseType = "blob";
+                xmlhttp.send();
+                console.log(xmlhttp.status);
+                if (xmlhttp.status==0) {
+                    console.log('xmlhttp status == 0 (success for local file scheme');
+                    result = new File([xmlhttp.response], "file", {type: 'application/octet-stream'});
+                }
+                return result;
+            }
+            */
+
+            // Publishing a Topic (from rosbag)
+            // ------------------
+
+            //import {open} from '/source/node_modules/rosbag'
+            async function squareTrajectoryMessages() {
+                // open a new bag at a given file location:
+                console.log("loading file"); 
+                /*bag_file = loadFile('/static/rosbag_msgs/bag_msgs_square/display_trajectory_square.bag')*/
+                const bag_file = new File(["http://127.0.0.1:2000/index/static/rosbag_msgs/bag_msgs_square/display_trajectory_square.bag"], {type: 'application/octet-stream'});
+                const trajectoryBag = await rosbag.open(bag_file);
+                await trajectoryBag.readMessages({topics:['/move_group/display_planned_path']}, (result) => {
+                    console.log(result.topic);
+                    console.log(result.message)
+                });
+            }
+            squareTrajectoryMessages();
+
+        </script>
+
+    </body>
+
+</html>
